@@ -90,8 +90,8 @@ RCT_EXPORT_MODULE(OAuthManager);
         if ([SFSafariViewController class] != nil) {
             dispatch_async(dispatch_get_main_queue(), ^{
               safariViewController = [[SFSafariViewController alloc] initWithURL:URL];
-              UIViewController *viewController = application.keyWindow.rootViewController;
-              [viewController presentViewController:safariViewController animated:YES completion: nil];
+              UIViewController *rootViewController = application.keyWindow.rootViewController;
+              [[self topViewControllerWithRootViewController:rootViewController] presentViewController:safariViewController animated:YES completion:nil];
             });
         } else {
             [application openURL:URL];
@@ -132,6 +132,23 @@ RCT_EXPORT_MODULE(OAuthManager);
     
     return [RCTLinkingManager application:application openURL:url
                         sourceApplication:sourceApplication annotation:annotation];
+}
+
+# pragma mark - Utility
+
++ (UIViewController*)topViewControllerWithRootViewController:(UIViewController*)rootViewController {
+    if ([rootViewController isKindOfClass:[UITabBarController class]]) {
+        UITabBarController* tabBarController = (UITabBarController*)rootViewController;
+        return [self topViewControllerWithRootViewController:tabBarController.selectedViewController];
+    } else if ([rootViewController isKindOfClass:[UINavigationController class]]) {
+        UINavigationController* navigationController = (UINavigationController*)rootViewController;
+        return [self topViewControllerWithRootViewController:navigationController.visibleViewController];
+    } else if (rootViewController.presentedViewController) {
+        UIViewController* presentedViewController = rootViewController.presentedViewController;
+        return [self topViewControllerWithRootViewController:presentedViewController];
+    } else {
+        return rootViewController;
+    }
 }
 
 - (BOOL) _configureProvider:(NSString *)providerName andConfig:(NSDictionary *)config
@@ -509,6 +526,7 @@ RCT_EXPORT_METHOD(makeRequest:(NSString *)providerName
         }
     }];
 }
+
 
 #pragma mark - private
 
