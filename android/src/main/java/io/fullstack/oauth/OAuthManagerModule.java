@@ -103,7 +103,7 @@ class OAuthManagerModule extends ReactContextBaseJavaModule {
 
   @ReactMethod
   public void authorize(
-    final String providerName, 
+    final String providerName,
     @Nullable final ReadableMap params, 
     final Callback callback) 
   {
@@ -111,9 +111,18 @@ class OAuthManagerModule extends ReactContextBaseJavaModule {
       final OAuthManagerModule self = this;
       final HashMap<String,Object> cfg = this.getConfiguration(providerName);
       final String authVersion = (String) cfg.get("auth_version");
+
+      String protocol;
+
+      if (params.hasKey("protocol")) {
+        protocol = params.getString("protocol");
+      } else {
+        protocol = "http";
+      }
+
       Activity activity = this.getCurrentActivity();
       FragmentManager fragmentManager = activity.getFragmentManager();
-      String callbackUrl = "http://localhost/" + providerName;
+      String callbackUrl = protocol + "://localhost/" + providerName;
       
       OAuthManagerOnAccessTokenListener listener = new OAuthManagerOnAccessTokenListener() {
         public void onRequestTokenError(final Exception ex) {
